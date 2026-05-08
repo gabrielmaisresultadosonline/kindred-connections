@@ -58,15 +58,20 @@ cd backend
 npm install
 npm run build
 
-# 8. Configure Environment Variables (Placeholder - adjust values manually after run)
+# 8. Configure Environment Variables
 if [ ! -f ".env" ]; then
     echo -e "${BLUE}Creating backend .env template...${NC}"
+    # Use standard Supabase variables + backend specific ones
     cat <<EOT >> .env
 PORT=4000
-DATABASE_URL="your_supabase_db_url"
-DIRECT_URL="your_supabase_direct_url"
-JWT_SECRET="generate_a_random_secret_here"
+DATABASE_URL=""
+DIRECT_URL=""
+SUPABASE_URL=""
+SUPABASE_SERVICE_ROLE_KEY=""
+JWT_SECRET="$(openssl rand -base64 32)"
+CHROME_PATH="/usr/bin/chromium-browser"
 EOT
+    echo -e "${RED}ACTION REQUIRED:${NC} Please edit $PROJECT_DIR/backend/.env and fill in your Supabase credentials."
 fi
 cd ..
 
@@ -92,6 +97,7 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
+        client_max_body_size 50M;
     }
 
     # Socket.IO
@@ -101,6 +107,7 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "Upgrade";
         proxy_set_header Host \$host;
+        proxy_read_timeout 86400;
     }
 }
 EOT
@@ -110,7 +117,13 @@ sudo nginx -t && sudo systemctl restart nginx
 
 # 10. Start Services with PM2
 echo -e "${GREEN}Starting backend with PM2...${NC}"
-cd backend
+cd $PROJECT_DIR/backend
+# Ensure dist directory exists and has files
+if [ ! -f "dist/index.js" ]; then
+    echo -e "${RED}Error: dist/index.js not found. Attempting to rebuild...${NC}"
+    npm run build
+fi
+
 pm2 delete zapmro-api 2>/dev/null || true
 pm2 start dist/index.js --name zapmro-api
 pm2 save

@@ -85,11 +85,14 @@ server {
     listen 80;
     server_name 167.88.42.133;
 
-    # Frontend
+    # Frontend (TanStack Start Server)
     location / {
-        root $PROJECT_DIR/dist;
-        index index.html;
-        try_files \$uri \$uri/ /index.html;
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
     }
 
     # Backend API
@@ -116,10 +119,24 @@ server {
 EOT
 
 sudo ln -sf /etc/nginx/sites-available/zapmro /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 
 # 10. Start Services with PM2
-echo -e "${GREEN}Starting backend with PM2...${NC}"
+echo -e "${GREEN}Starting services with PM2...${NC}"
+
+# Start Frontend (TanStack Start)
+cd $PROJECT_DIR
+pm2 delete zapmro-web 2>/dev/null || true
+# TanStack Start standard output for node is dist/server/index.js
+if [ -f "dist/server/index.js" ]; then
+    pm2 start dist/server/index.js --name zapmro-web -- --port 3000
+else
+    # Fallback for other build types
+    npm run preview -- --port 3000 &
+fi
+
+# Start Backend
 cd $PROJECT_DIR/backend
 # Ensure dist directory exists and has files
 if [ ! -f "dist/index.js" ]; then

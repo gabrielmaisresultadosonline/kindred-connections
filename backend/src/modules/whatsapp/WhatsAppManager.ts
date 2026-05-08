@@ -1,6 +1,6 @@
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import { Server } from 'socket.io';
-import { supabase } from '../../config/supabase';
+import { getDb } from '../../config/database';
 
 export class WhatsAppManager {
   private sessions: Map<string, Client> = new Map();
@@ -11,23 +11,25 @@ export class WhatsAppManager {
   }
 
   async initialize() {
-    // Load existing sessions from DB that were connected
-    const { data: sessions, error } = await supabase
-      .from('whatsapp_sessions')
-      .select('*');
-
-    if (error) {
-      console.error('Error fetching sessions:', error);
-      return;
-    }
-
-    // In a real scenario, we might not auto-connect all sessions on boot to save resources
-    // but we'll prepare the mechanism.
+    const db = await getDb();
+    const sessions = await db.all('SELECT * FROM whatsapp_sessions');
+    console.log(`Loaded ${sessions.length} sessions from local database.`);
   }
 
   async createSession(sessionId: string, name: string) {
     if (this.sessions.has(sessionId)) {
       return this.sessions.get(sessionId);
+    }
+
+    const db = await getDb();
+    
+    // Ensure session exists in local DB
+    const existing = await db.get('SELECT id FROM whatsapp_sessions WHERE id = ?', sessionId);
+    if (!existing) {
+      await db.run(
+        'INSERT INTO whatsapp_sessions (id, name, status) VALUES (?, ?, ?)',
+        sessionId, name, 'DISCONNECTED'
+      );
     }
 
     const client = new Client({
@@ -48,47 +50,31 @@ export class WhatsAppManager {
       }
     });
 
-    client.on('qr', (qr) => {
+    client.on('qr', async (qr) => {
       console.log(`QR Code generated for session ${sessionId}`);
       this.io.emit(`qr-${sessionId}`, qr);
       
-      // Update status in DB
-      supabase
-        .from('whatsapp_sessions')
-        .update({ status: 'QR_READY' })
-        .eq('id', sessionId)
-        .then();
+      const db = await getDb();
+      await db.run('UPDATE whatsapp_sessions SET status = ? WHERE id = ?', 'QR_READY', sessionId);
     });
 
-    client.on('ready', () => {
+    client.on('ready', async () => {
       console.log(`Session ${sessionId} is ready!`);
       this.io.emit(`ready-${sessionId}`, { status: 'CONNECTED' });
       
-      supabase
-        .from('whatsapp_sessions')
-        .update({ status: 'CONNECTED', last_connected: new Date().toISOString() })
-        .eq('id', sessionId)
-        .then();
+      const db = await getDb();
+      await db.run(
+        'UPDATE whatsapp_sessions SET status = ?, last_connected = ? WHERE id = ?',
+        'CONNECTED', new Date().toISOString(), sessionId
+      );
     });
 
-    client.on('authenticated', () => {
-      console.log(`Session ${sessionId} authenticated`);
-    });
-
-    client.on('auth_failure', (msg) => {
-      console.error(`Auth failure for session ${sessionId}:`, msg);
-      this.io.emit(`error-${sessionId}`, 'Falha na autenticação');
-    });
-
-    client.on('disconnected', (reason) => {
+    client.on('disconnected', async (reason) => {
       console.log(`Session ${sessionId} disconnected:`, reason);
       this.io.emit(`disconnected-${sessionId}`, reason);
       
-      supabase
-        .from('whatsapp_sessions')
-        .update({ status: 'DISCONNECTED' })
-        .eq('id', sessionId)
-        .then();
+      const db = await getDb();
+      await db.run('UPDATE whatsapp_sessions SET status = ? WHERE id = ?', 'DISCONNECTED', sessionId);
       
       this.sessions.delete(sessionId);
     });
@@ -107,3 +93,4 @@ export class WhatsAppManager {
     return this.sessions.get(sessionId);
   }
 }
+

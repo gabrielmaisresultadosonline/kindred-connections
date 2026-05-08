@@ -85,16 +85,22 @@ server {
     listen 80;
     server_name 167.88.42.133;
 
-    # Frontend - Static Files (SPA Mode)
+    # Frontend - Static Files
     location / {
         root $PROJECT_DIR/dist/client;
         index index.html;
         try_files \$uri \$uri/ /index.html;
         
-        # Security headers
+        # Security & Performance
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-XSS-Protection "1; mode=block";
         add_header X-Content-Type-Options "nosniff";
+        
+        # Cache static assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf)$ {
+            expires 30d;
+            add_header Cache-Control "public, no-transform";
+        }
     }
 
     # Backend API
@@ -104,6 +110,8 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_cache_bypass \$http_upgrade;
         client_max_body_size 50M;
     }
@@ -115,14 +123,25 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "Upgrade";
         proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_read_timeout 86400;
     }
 }
 EOT
 
-# Ensure permissions for Nginx
-sudo chown -R www-data:www-data $PROJECT_DIR/dist/client
-sudo chmod -R 755 $PROJECT_DIR
+# Ensure permissions for Nginx - VERY IMPORTANT
+echo -e "${GREEN}Applying strict permissions for Nginx...${NC}"
+sudo chown -R www-data:www-data $PROJECT_DIR
+sudo find $PROJECT_DIR -type d -exec chmod 755 {} \;
+sudo find $PROJECT_DIR -type f -exec chmod 644 {} \;
+
+# Ensure Nginx can execute the directory path
+sudo chmod +x /var
+sudo chmod +x /var/www
+sudo chmod +x /var/www/zapmro
+sudo chmod +x /var/www/zapmro/dist
+sudo chmod +x /var/www/zapmro/dist/client
 
 sudo ln -sf /etc/nginx/sites-available/zapmro /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default

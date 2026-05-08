@@ -84,11 +84,14 @@ export class WhatsAppManager {
     });
 
     try {
-      await client.initialize();
+      console.log(`Initializing WhatsApp client for session ${sessionId}...`);
+      client.initialize().catch(err => {
+        console.error(`Client initialize failed for ${sessionId}:`, err);
+      });
       this.sessions.set(sessionId, client);
       return client;
     } catch (error) {
-      console.error(`Failed to initialize session ${sessionId}:`, error);
+      console.error(`Failed to setup session ${sessionId}:`, error);
       throw error;
     }
   }

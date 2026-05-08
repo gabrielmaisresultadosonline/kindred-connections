@@ -1,58 +1,95 @@
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Power, RefreshCw, Smartphone } from "lucide-react";
-import { motion } from "framer-motion";
+import React from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, Bell, Shield, Smartphone, Globe } from 'lucide-react';
 
 const Settings = () => {
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">WhatsApp Sessions</h1>
-            <p className="text-slate-500 mt-2">Manage your WhatsApp device connections and sessions.</p>
-          </div>
-          <Button className="bg-indigo-600 hover:bg-indigo-700">
-            <Plus className="mr-2 h-4 w-4" /> New Session
-          </Button>
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Configurações</h1>
+          <p className="text-slate-400">Gerencie sua conta, integrações e preferências do sistema.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-            <Card className="border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-bold">Suporte Vendas</CardTitle>
-                <div className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 uppercase tracking-wider">
-                  Ready
-                </div>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="bg-slate-900 border border-slate-800 p-1 h-12">
+            <TabsTrigger value="profile" className="gap-2 data-[state=active]:bg-indigo-600"><User size={16} /> Perfil</TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2 data-[state=active]:bg-indigo-600"><Bell size={16} /> Notificações</TabsTrigger>
+            <TabsTrigger value="security" className="gap-2 data-[state=active]:bg-indigo-600"><Shield size={16} /> Segurança</TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-2 data-[state=active]:bg-indigo-600"><Smartphone size={16} /> Conexões</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="mt-6">
+            <Card className="bg-slate-900 border-slate-800 text-white">
+              <CardHeader>
+                <CardTitle>Informações Pessoais</CardTitle>
+                <CardDescription className="text-slate-500">Atualize seu nome e endereço de e-mail.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
-                  <Smartphone size={16} />
-                  <span>+55 (11) 99999-9999</span>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome Completo</Label>
+                    <Input id="name" defaultValue="Usuário ZapMRO" className="bg-slate-950 border-slate-800 focus:ring-indigo-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input id="email" defaultValue="admin@zapmro.cloud" className="bg-slate-950 border-slate-800 focus:ring-indigo-600" />
+                  </div>
                 </div>
-                <div className="mt-6 flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <RefreshCw className="mr-2 h-3.5 w-3.5" /> Restart
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-100">
-                    <Power className="mr-2 h-3.5 w-3.5" /> Logout
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Biografia</Label>
+                  <textarea 
+                    id="bio" 
+                    className="w-full min-h-[100px] rounded-md bg-slate-950 border border-slate-800 p-3 text-sm focus:ring-indigo-600 outline-none" 
+                    placeholder="Conte um pouco sobre você..."
+                  />
+                </div>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">Salvar Alterações</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-6">
+            <Card className="bg-slate-900 border-slate-800 text-white">
+              <CardHeader>
+                <CardTitle>Integrações Ativas</CardTitle>
+                <CardDescription className="text-slate-500">Conecte sua conta a serviços externos.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                      <Globe size={24} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Google Contacts</p>
+                      <p className="text-xs text-slate-500">Sincronização automática de contatos</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="border-slate-800 hover:bg-slate-800">Conectar</Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                      <Smartphone size={24} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Webhooks</p>
+                      <p className="text-xs text-slate-500">Receba notificações em tempo real</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="border-slate-800 hover:bg-slate-800">Gerenciar</Button>
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-
-          <Card className="border-slate-200 shadow-sm border-dashed border-2 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-slate-200 mb-4 shadow-sm">
-              <Plus className="text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900">Connect New Device</h3>
-            <p className="text-sm text-slate-500 mt-2 mb-6 max-w-[200px]">Add another WhatsApp session to start managing more chats.</p>
-            <Button variant="secondary" className="w-full">Get QR Code</Button>
-          </Card>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

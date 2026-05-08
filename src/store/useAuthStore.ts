@@ -1,23 +1,38 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
-  user: any | null;
-  token: string | null;
-  setAuth: (user: any, token: string) => void;
-  logout: () => void;
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  logout: () => Promise<void>;
+  initialize: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
-    }),
-    {
-      name: 'zapmro-auth',
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  session: null,
+  isLoading: true,
+  setUser: (user) => set({ user }),
+  setSession: (session) => set({ session, user: session?.user ?? null }),
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ user: null, session: null });
+  },
+  initialize: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      set({ session, user: session?.user ?? null, isLoading: false });
+
+      supabase.auth.onAuthStateChange((_event, session) => {
+        set({ session, user: session?.user ?? null, isLoading: false });
+      });
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      set({ isLoading: false });
     }
-  )
-);
+  },
+}));

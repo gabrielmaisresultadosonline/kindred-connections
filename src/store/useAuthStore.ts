@@ -8,7 +8,7 @@ interface AuthState {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
-  signOut: () => Promise<void>;
+  logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
 
@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   setUser: (user) => set({ user }),
   setSession: (session) => set({ session, user: session?.user ?? null }),
-  signOut: async () => {
+  logout: async () => {
     await supabase.auth.signOut();
     set({ user: null, session: null });
   },
@@ -27,11 +27,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session } } = await supabase.auth.getSession();
       set({ session, user: session?.user ?? null, isLoading: false });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.auth.onAuthStateChange((_event, session) => {
         set({ session, user: session?.user ?? null, isLoading: false });
       });
-
-      return () => subscription.unsubscribe();
     } catch (error) {
       console.error('Auth initialization error:', error);
       set({ isLoading: false });

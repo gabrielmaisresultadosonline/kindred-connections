@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as ContactsRouteImport } from './routes/contacts'
+import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as ChatsRouteImport } from './routes/chats'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AutomationsRouteImport } from './routes/automations'
@@ -32,6 +33,11 @@ const KanbanRoute = KanbanRouteImport.update({
 const ContactsRoute = ContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectionsRoute = ConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatsRoute = ChatsRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/automations': typeof AutomationsRoute
   '/campaigns': typeof CampaignsRoute
   '/chats': typeof ChatsRoute
+  '/connections': typeof ConnectionsRoute
   '/contacts': typeof ContactsRoute
   '/kanban': typeof KanbanRoute
   '/settings': typeof SettingsRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/automations': typeof AutomationsRoute
   '/campaigns': typeof CampaignsRoute
   '/chats': typeof ChatsRoute
+  '/connections': typeof ConnectionsRoute
   '/contacts': typeof ContactsRoute
   '/kanban': typeof KanbanRoute
   '/settings': typeof SettingsRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/automations': typeof AutomationsRoute
   '/campaigns': typeof CampaignsRoute
   '/chats': typeof ChatsRoute
+  '/connections': typeof ConnectionsRoute
   '/contacts': typeof ContactsRoute
   '/kanban': typeof KanbanRoute
   '/settings': typeof SettingsRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/campaigns'
     | '/chats'
+    | '/connections'
     | '/contacts'
     | '/kanban'
     | '/settings'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/campaigns'
     | '/chats'
+    | '/connections'
     | '/contacts'
     | '/kanban'
     | '/settings'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/campaigns'
     | '/chats'
+    | '/connections'
     | '/contacts'
     | '/kanban'
     | '/settings'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   AutomationsRoute: typeof AutomationsRoute
   CampaignsRoute: typeof CampaignsRoute
   ChatsRoute: typeof ChatsRoute
+  ConnectionsRoute: typeof ConnectionsRoute
   ContactsRoute: typeof ContactsRoute
   KanbanRoute: typeof KanbanRoute
   SettingsRoute: typeof SettingsRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/contacts'
       fullPath: '/contacts'
       preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connections': {
+      id: '/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof ConnectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chats': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutomationsRoute: AutomationsRoute,
   CampaignsRoute: CampaignsRoute,
   ChatsRoute: ChatsRoute,
+  ConnectionsRoute: ConnectionsRoute,
   ContactsRoute: ContactsRoute,
   KanbanRoute: KanbanRoute,
   SettingsRoute: SettingsRoute,
@@ -229,3 +250,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

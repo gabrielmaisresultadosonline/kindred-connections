@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LayoutDashboard, MessageSquare, Users, Kanban, Share2, Settings, BarChart3, LogOut, Zap } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, Kanban, Share2, Settings, BarChart3, LogOut, Zap, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from '@tanstack/react-router';
 
@@ -10,6 +10,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+    { icon: Smartphone, label: 'Connections', path: '/connections' },
     { icon: MessageSquare, label: 'Chats', path: '/chats' },
     { icon: Kanban, label: 'CRM Kanban', path: '/kanban' },
     { icon: Users, label: 'Contacts', path: '/contacts' },

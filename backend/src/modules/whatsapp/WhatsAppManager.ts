@@ -17,8 +17,12 @@ export class WhatsAppManager {
   }
 
   async createSession(sessionId: string, name: string) {
+    console.log(`Creating session for ${name} (${sessionId})`);
     if (this.sessions.has(sessionId)) {
-      return this.sessions.get(sessionId);
+      console.log(`Session ${sessionId} already exists, returning existing client.`);
+      const existingClient = this.sessions.get(sessionId)!;
+      // If it exists but we need a QR, it might be waiting
+      return existingClient;
     }
 
     const db = await getDb();

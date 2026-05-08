@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { io, Socket } from 'socket.io-client';
 import { QRCodeSVG } from 'qrcode.react';
 
-const BACKEND_URL = 'http://167.88.42.133:4000';
+const BACKEND_URL = window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'http://167.88.42.133:4000';
 
 const Connections = () => {
   const [sessions, setSessions] = useState<any[]>([]);

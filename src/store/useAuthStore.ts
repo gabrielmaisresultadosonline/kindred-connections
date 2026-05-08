@@ -27,9 +27,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session } } = await supabase.auth.getSession();
       set({ session, user: session?.user ?? null, isLoading: false });
 
-      supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         set({ session, user: session?.user ?? null, isLoading: false });
       });
+
+      // Cleanup subscription if needed? In a global store usually not needed but good to know
     } catch (error) {
       console.error('Auth initialization error:', error);
       set({ isLoading: false });

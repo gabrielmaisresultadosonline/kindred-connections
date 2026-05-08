@@ -33,7 +33,45 @@ const Connections = () => {
 
   useEffect(() => {
     fetchSessions();
+
+    // Initialize Socket.IO
+    socketRef.current = io(BACKEND_URL);
+
+    socketRef.current.on('connect', () => {
+      console.log('Connected to backend');
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, []);
+
+  const setupSocketListeners = (sessionId: string) => {
+    if (!socketRef.current) return;
+
+    // Remove existing listeners for this session
+    socketRef.current.off(`qr-${sessionId}`);
+    socketRef.current.off(`ready-${sessionId}`);
+    socketRef.current.off(`error-${sessionId}`);
+
+    socketRef.current.on(`qr-${sessionId}`, (qr: string) => {
+      console.log('QR Code received:', qr);
+      setQrCode(qr);
+    });
+
+    socketRef.current.on(`ready-${sessionId}`, (data: any) => {
+      toast.success('WhatsApp Conectado!');
+      setShowQR(null);
+      setQrCode(null);
+      fetchSessions();
+    });
+
+    socketRef.current.on(`error-${sessionId}`, (error: string) => {
+      toast.error('Erro na conexão: ' + error);
+    });
+  };
 
   const fetchSessions = async () => {
     setIsLoading(true);
@@ -78,13 +116,22 @@ const Connections = () => {
       setNewSessionName('');
       setIsCreating(false);
       
-      // Simulação de geração de QR Code
-      setShowQR(data.id);
-      toast.success('Sessão criada! Gerando QR Code...');
+      handleConnect(data.id, data.name);
       
     } catch (error: any) {
       toast.error('Erro ao criar sessão: ' + error.message);
       setIsCreating(false);
+    }
+  };
+
+  const handleConnect = (sessionId: string, name: string) => {
+    setShowQR(sessionId);
+    setQrCode(null);
+    setupSocketListeners(sessionId);
+    
+    if (socketRef.current) {
+      socketRef.current.emit('request-qr', { sessionId, name });
+      toast.info('Iniciando instância do WhatsApp...');
     }
   };
 
@@ -138,14 +185,18 @@ const Connections = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center py-8">
-              <div className="bg-white p-4 rounded-xl mb-6 shadow-2xl shadow-indigo-500/10">
-                {/* Simulação do QR Code Real */}
-                <div className="w-64 h-64 bg-slate-100 flex items-center justify-center border-2 border-slate-200">
-                  <div className="text-center">
-                    <QrCode size={180} className="text-slate-900 mx-auto opacity-80" />
-                    <p className="text-slate-500 text-[10px] mt-2 font-mono">GERANDO QR CODE REAL NA VPS...</p>
+              <div className="bg-white p-6 rounded-xl mb-6 shadow-2xl shadow-indigo-500/10 border-4 border-indigo-500/10">
+                {qrCode ? (
+                  <QRCodeSVG value={qrCode} size={256} />
+                ) : (
+                  <div className="w-64 h-64 bg-slate-100 flex items-center justify-center border-2 border-slate-200">
+                    <div className="text-center">
+                      <Loader2 size={48} className="text-indigo-600 animate-spin mx-auto mb-2" />
+                      <p className="text-slate-500 text-xs font-medium">Iniciando motor WhatsApp...</p>
+                      <p className="text-slate-400 text-[10px] mt-1 uppercase tracking-wider">Aguarde alguns segundos</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               <div className="flex items-center gap-4">
                 <Button variant="outline" className="border-slate-800 text-slate-400 hover:bg-slate-800" onClick={() => setShowQR(null)}>
@@ -185,7 +236,7 @@ const Connections = () => {
                       size="sm" 
                       variant="outline" 
                       className="flex-1 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white gap-2"
-                      onClick={() => setShowQR(session.id)}
+                      onClick={() => handleConnect(session.id, session.name)}
                     >
                       <QrCode size={14} /> Conectar
                     </Button>

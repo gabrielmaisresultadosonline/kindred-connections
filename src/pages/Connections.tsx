@@ -111,6 +111,7 @@ const Connections = () => {
       setIsCreating(false);
       
       handleConnect(sessionId, newSessionName);
+      fetchSessions(); // Refresh list to show the new item immediately
       
     } catch (error: any) {
       toast.error('Erro ao criar sessão: ' + error.message);

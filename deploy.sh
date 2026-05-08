@@ -19,7 +19,15 @@ echo -e "${GREEN}Updating system and installing dependencies...${NC}"
 sudo apt-get update
 sudo apt-get install -y curl git wget build-essential libgbm-dev \
     libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2 libxss1 \
-    libxtst6 xauth xvfb ffmpeg chromium-browser
+    libxtst6 xauth xvfb ffmpeg chromium-browser ufw
+
+# Configure Firewall
+echo -e "${GREEN}Configuring Firewall (UFW)...${NC}"
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 4000/tcp
+sudo ufw allow 22/tcp
+sudo ufw --force enable
 
 # 2. Install Node.js (Latest LTS)
 if ! command -v node &> /dev/null; then

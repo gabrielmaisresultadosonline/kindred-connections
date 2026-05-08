@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { WhatsAppManager } from './modules/whatsapp/WhatsAppManager';
+import { getDb } from './config/database';
 
 dotenv.config();
 

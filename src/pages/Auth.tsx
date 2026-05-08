@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,17 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const navigate = useNavigate();
+  const { session, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (session) {
+      navigate({ to: '/' });
+    }
+  }, [session, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +53,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -53,8 +65,15 @@ const Auth = () => {
 
       if (error) throw error;
       
-      toast.success('Conta criada com sucesso! Verifique seu e-mail.');
+      // If user is auto-confirmed or already has a session, navigate
+      if (data?.session) {
+        toast.success('Conta criada com sucesso!');
+        navigate({ to: '/' });
+      } else {
+        toast.success('Conta criada! Verifique seu e-mail para confirmar.');
+      }
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error(error.message || 'Erro ao criar conta');
     } finally {
       setIsLoading(false);

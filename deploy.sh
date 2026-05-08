@@ -85,19 +85,21 @@ server {
     listen 80;
     server_name 167.88.42.133;
 
-    # Frontend (TanStack Start Server)
+    # Frontend - Static Files (SPA Mode)
     location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
+        root $PROJECT_DIR/dist/client;
+        index index.html;
+        try_files \$uri \$uri/ /index.html;
+        
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN";
+        add_header X-XSS-Protection "1; mode=block";
+        add_header X-Content-Type-Options "nosniff";
     }
 
     # Backend API
     location /api/ {
-        proxy_pass http://localhost:4000/;
+        proxy_pass http://127.0.0.1:4000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -108,7 +110,7 @@ server {
 
     # Socket.IO
     location /socket.io/ {
-        proxy_pass http://localhost:4000/socket.io/;
+        proxy_pass http://127.0.0.1:4000/socket.io/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "Upgrade";
@@ -117,6 +119,10 @@ server {
     }
 }
 EOT
+
+# Ensure permissions for Nginx
+sudo chown -R www-data:www-data $PROJECT_DIR/dist/client
+sudo chmod -R 755 $PROJECT_DIR
 
 sudo ln -sf /etc/nginx/sites-available/zapmro /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default

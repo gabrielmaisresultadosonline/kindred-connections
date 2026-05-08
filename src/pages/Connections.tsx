@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,10 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { io, Socket } from 'socket.io-client';
+import { QRCodeSVG } from 'qrcode.react';
+
+const BACKEND_URL = 'http://167.88.42.133:4000';
 
 const Connections = () => {
   const [sessions, setSessions] = useState<any[]>([]);
@@ -24,6 +28,8 @@ const Connections = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
   const [showQR, setShowQR] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     fetchSessions();

@@ -129,22 +129,11 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 
 # 10. Start Services with PM2
-echo -e "${GREEN}Starting services with PM2...${NC}"
-
-# Start Frontend (TanStack Start)
-cd $PROJECT_DIR
-pm2 delete zapmro-web 2>/dev/null || true
-# TanStack Start standard output for node is dist/server/index.js
-if [ -f "dist/server/index.js" ]; then
-    pm2 start dist/server/index.js --name zapmro-web -- --port 3000
-else
-    # Fallback for other build types
-    npm run preview -- --port 3000 &
-fi
+echo -e "${GREEN}Starting backend with PM2...${NC}"
 
 # Start Backend
 cd $PROJECT_DIR/backend
-# Ensure dist directory exists and has files
+# Ensure dist directory exists
 if [ ! -f "dist/index.js" ]; then
     echo -e "${RED}Error: dist/index.js not found. Attempting to rebuild...${NC}"
     npm run build

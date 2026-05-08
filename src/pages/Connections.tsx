@@ -76,12 +76,8 @@ const Connections = () => {
   const fetchSessions = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('whatsapp_sessions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const response = await fetch(`${BACKEND_URL}/sessions`);
+      const data = await response.json();
       setSessions(data || []);
     } catch (error: any) {
       toast.error('Erro ao carregar sessões: ' + error.message);
@@ -98,25 +94,23 @@ const Connections = () => {
 
     setIsCreating(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const sessionId = `session_${Date.now()}`;
       
-      const { data, error } = await supabase
-        .from('whatsapp_sessions')
-        .insert([{
-          name: newSessionName,
-          status: 'DISCONNECTED',
-          user_id: user?.id
-        }])
-        .select()
-        .single();
+      const response = await fetch(`${BACKEND_URL}/sessions/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, name: newSessionName })
+      });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!data.success) throw new Error(data.error);
       
-      setSessions([data, ...sessions]);
+      setSessions([{ id: sessionId, name: newSessionName, status: 'DISCONNECTED' }, ...sessions]);
       setNewSessionName('');
       setIsCreating(false);
       
-      handleConnect(data.id, data.name);
+      handleConnect(sessionId, newSessionName);
       
     } catch (error: any) {
       toast.error('Erro ao criar sessão: ' + error.message);

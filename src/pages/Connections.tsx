@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { io, Socket } from 'socket.io-client';
 import { QRCodeSVG } from 'qrcode.react';
 
-const BACKEND_URL = window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'http://167.88.42.133:4000';
+const BACKEND_URL = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '/api';
 
 const Connections = () => {
   const [sessions, setSessions] = useState<any[]>([]);
@@ -35,7 +35,9 @@ const Connections = () => {
     fetchSessions();
 
     // Initialize Socket.IO
-    socketRef.current = io(BACKEND_URL);
+    socketRef.current = io(window.location.hostname === 'localhost' ? 'http://localhost:4000' : '/', {
+      path: window.location.hostname === 'localhost' ? '/socket.io' : '/socket.io'
+    });
 
     socketRef.current.on('connect', () => {
       console.log('Connected to backend');

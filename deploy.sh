@@ -58,15 +58,20 @@ cd backend
 npm install
 npm run build
 
-# 8. Configure Environment Variables (Placeholder - adjust values manually after run)
+# 8. Configure Environment Variables
 if [ ! -f ".env" ]; then
     echo -e "${BLUE}Creating backend .env template...${NC}"
+    # Use standard Supabase variables + backend specific ones
     cat <<EOT >> .env
 PORT=4000
-DATABASE_URL="your_supabase_db_url"
-DIRECT_URL="your_supabase_direct_url"
-JWT_SECRET="generate_a_random_secret_here"
+DATABASE_URL=""
+DIRECT_URL=""
+SUPABASE_URL=""
+SUPABASE_SERVICE_ROLE_KEY=""
+JWT_SECRET="$(openssl rand -base64 32)"
+CHROME_PATH="/usr/bin/chromium-browser"
 EOT
+    echo -e "${RED}ACTION REQUIRED:${NC} Please edit $PROJECT_DIR/backend/.env and fill in your Supabase credentials."
 fi
 cd ..
 

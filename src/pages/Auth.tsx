@@ -43,6 +43,7 @@ const Auth = () => {
       toast.success('Bem-vindo ao ZapMRO Cloud!');
       navigate({ to: '/' });
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error(error.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);

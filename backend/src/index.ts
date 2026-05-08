@@ -25,6 +25,17 @@ app.get('/', (req, res) => {
   res.send('ZapMRO Backend Running');
 });
 
+// Endpoint to list sessions
+app.get('/sessions', async (req, res) => {
+  try {
+    const db = await getDb();
+    const sessions = await db.all('SELECT * FROM whatsapp_sessions ORDER BY created_at DESC');
+    res.json(sessions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint to start a new session
 app.post('/sessions/start', async (req, res) => {
   const { sessionId, name } = req.body;

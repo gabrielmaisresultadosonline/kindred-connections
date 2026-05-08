@@ -110,7 +110,13 @@ sudo nginx -t && sudo systemctl restart nginx
 
 # 10. Start Services with PM2
 echo -e "${GREEN}Starting backend with PM2...${NC}"
-cd backend
+cd $PROJECT_DIR/backend
+# Ensure dist directory exists and has files
+if [ ! -f "dist/index.js" ]; then
+    echo -e "${RED}Error: dist/index.js not found. Attempting to rebuild...${NC}"
+    npm run build
+fi
+
 pm2 delete zapmro-api 2>/dev/null || true
 pm2 start dist/index.js --name zapmro-api
 pm2 save

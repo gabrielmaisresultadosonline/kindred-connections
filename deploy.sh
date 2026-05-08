@@ -97,6 +97,7 @@ server {
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
+        client_max_body_size 50M;
     }
 
     # Socket.IO
@@ -106,6 +107,7 @@ server {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "Upgrade";
         proxy_set_header Host \$host;
+        proxy_read_timeout 86400;
     }
 }
 EOT

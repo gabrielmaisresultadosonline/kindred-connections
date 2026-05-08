@@ -2,6 +2,7 @@ import React from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, Users, Zap, BarChart3, Clock, TrendingUp, Settings } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 const StatCard = ({ title, value, icon: Icon, description, trend }: any) => (
   <Card className="bg-slate-900 border-slate-800 text-white overflow-hidden relative group">
@@ -106,9 +107,12 @@ const Index = () => {
                   <Settings size={14} className="text-slate-500 cursor-pointer hover:text-white" />
                 </div>
 
-                <button className="w-full mt-4 py-2 rounded-lg border border-dashed border-slate-700 text-slate-400 text-sm hover:border-indigo-600 hover:text-indigo-400 transition-all">
+                <Link 
+                  to="/connections"
+                  className="w-full mt-4 flex items-center justify-center py-2 rounded-lg border border-dashed border-slate-700 text-slate-400 text-sm hover:border-indigo-600 hover:text-indigo-400 transition-all"
+                >
                   + Adicionar Nova Sessão
-                </button>
+                </Link>
               </div>
             </CardContent>
           </Card>

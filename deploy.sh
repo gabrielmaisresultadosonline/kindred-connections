@@ -19,7 +19,15 @@ echo -e "${GREEN}Updating system and installing dependencies...${NC}"
 sudo apt-get update
 sudo apt-get install -y curl git wget build-essential libgbm-dev \
     libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2 libxss1 \
-    libxtst6 xauth xvfb ffmpeg chromium-browser
+    libxtst6 xauth xvfb ffmpeg chromium-browser ufw
+
+# Configure Firewall
+echo -e "${GREEN}Configuring Firewall (UFW)...${NC}"
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 4000/tcp
+sudo ufw allow 22/tcp
+sudo ufw --force enable
 
 # 2. Install Node.js (Latest LTS)
 if ! command -v node &> /dev/null; then
@@ -77,11 +85,14 @@ server {
     listen 80;
     server_name 167.88.42.133;
 
-    # Frontend
+    # Frontend (TanStack Start Server)
     location / {
-        root $PROJECT_DIR/dist;
-        index index.html;
-        try_files \$uri \$uri/ /index.html;
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
     }
 
     # Backend API
@@ -108,10 +119,24 @@ server {
 EOT
 
 sudo ln -sf /etc/nginx/sites-available/zapmro /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 
 # 10. Start Services with PM2
-echo -e "${GREEN}Starting backend with PM2...${NC}"
+echo -e "${GREEN}Starting services with PM2...${NC}"
+
+# Start Frontend (TanStack Start)
+cd $PROJECT_DIR
+pm2 delete zapmro-web 2>/dev/null || true
+# TanStack Start standard output for node is dist/server/index.js
+if [ -f "dist/server/index.js" ]; then
+    pm2 start dist/server/index.js --name zapmro-web -- --port 3000
+else
+    # Fallback for other build types
+    npm run preview -- --port 3000 &
+fi
+
+# Start Backend
 cd $PROJECT_DIR/backend
 # Ensure dist directory exists and has files
 if [ ! -f "dist/index.js" ]; then
